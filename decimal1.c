@@ -11,8 +11,51 @@ typedef struct nodo {
 typedef nodo* ptrNodo;
 typedef nodo* Pila;
 
-/*
+int esPalabraDecimal(char *);
+int esPalabraOctal(char *);
+int esPalabraHexa(char *);
+int columna(int);
+int columna2(int);
+int columna3(int);
+int columna4(int);
+int estaEntreCaracteres(int, char, char);
+void pushConvertidos(Pila *, char *);
+void push(Pila *, int);
+int pop(Pila *);
+int esPalabraValida(char *);
+float realizarOperacion(Pila *, Pila *);
+int esOperadorPrioritario(int);
+float operar(float,float, int);
+void desapilarYApilarEnAux(Pila*, Pila*);
+void Punto1();
+void Punto2();
+void Punto3(Pila*,Pila*,Pila*);
+int Valor(int);
+
+
+void push(Pila *pila, int info) {
+    ptrNodo nuevo;
+    nuevo =(ptrNodo)malloc(sizeof(nodo));
+    nuevo->info = info;
+    nuevo->siguiente = (*pila),
+    *pila = nuevo;
+}
+
+int pop(Pila* pila) {
+    int x = (*pila) -> info;
+    ptrNodo aux = (*pila);
+    *pila = aux->siguiente;
+    free(aux);
+    return x;
+}
+
+// Main
 int main() {
+
+    Pila pila = NULL;
+    Pila pila2 = NULL;
+    Pila pilaAux = NULL;
+
     int opcion;
     do {
         printf("------------------------MENU------------------------\n");
@@ -35,7 +78,7 @@ int main() {
                 Punto2();
                 break;
             case 3:
-                Punto3();
+                Punto3(&pila,&pilaAux,&pila2);
                 break;
             default:
                 printf("--------opcion invalida, por favor ingrese una opcion valida!--------\n");
@@ -44,74 +87,22 @@ int main() {
     } while (opcion != 0);
     return 0;
 }
-*/
 
-int esPalabraDecimal(char *);
-int esPalabraOctal(char *);
-int esPalabraHexa(char *);
-int columna(int);
-int columna2(int);
-int columna3(int);
-int columna4(int);
-int estaEntreCaracteres(int, char, char);
-void pushConvertidos(Pila *, char *);
-void push(Pila *, int);
-int pop(Pila *);
-int esPalabraValida(char *);
-int realizarOperacion(Pila *, Pila *);
-int esOperadorPrioritario(int);
-int operar(int, int, int);
-
-void push(Pila *pila, int info) {
-    ptrNodo nuevo;
-    nuevo =(ptrNodo)malloc(sizeof(nodo));
-    nuevo->info = info;
-    nuevo->siguiente = (*pila),
-    *pila = nuevo;
-}
-
-int pop(Pila *pila) {
-    int x = (*pila) -> info; // Rompe aca. 
-    ptrNodo aux =(*pila);
-    *pila = aux->siguiente;
-    free(aux);
-    return x;
-}
-
-int main () {
-    int contadorDecimal = 0;
-    int contadorOctal = 0;
-    int contadorHexa = 0;
-    char caracterSeparador[] = "$"; 
-
-    Pila pila = NULL;
-    Pila pila2 = NULL;
-
-    char cadenaNumeros[50] = "203$062$0x8Y$071"; // 203$0x06$0982
-    char palabra[10] = "10+5*3";
+// DESARROLLO DEL PRIMER PUNTO
+void Punto1() {
+    char *cadenaNumeros;
+    char caracterSeparador[] = "$";
+    int contadorDecimal = 0; 
+    int contadorOctal = 0; 
+    int contadorHexa = 0; 
     
-    if (esPalabraValida(palabra)) {
-        pushConvertidos(&pila, palabra);
-        realizarOperacion(&pila, &pila2);
-        // printf("Resultado %d.\n", realizarOperacion(&pila, &pila2));
-    } else {
-        printf("Ingrese una palabra valida");
-    }
-   
-    // while(pila != NULL) {
-       //  printf("El valor es %d.\n" , pop(&pila));
-   //  }
-
-    // printf("Ingrese cadena separada por $");
-    // scanf("%s", cadenaNumeros);
-/*
+    printf("Ingrese cadena separada por $\n");
+    scanf("%s", cadenaNumeros);
     char *palabra = strtok(cadenaNumeros, caracterSeparador); // "$"
 
 while(palabra != NULL) {
     printf("%s.\n", palabra);
 
-    // if (! Verifica(palabra)) {
-     //  printf("Tiene caracteres no validos \n");
     if (esPalabraDecimal(palabra)) {
         printf("Es palabra decimal \n");
         contadorDecimal ++;
@@ -129,11 +120,33 @@ while(palabra != NULL) {
             
         palabra = strtok(NULL, caracterSeparador);
     }
-
     printf("cantidad Decimales es %d.\n" , contadorDecimal);
-    */
 }
 
+// DESARROLLO DEL SEGUNDO PUNTO
+void Punto2() {
+    char caracter;
+    printf("Ingrese un caracter numerico\n");
+    scanf(" %c", &caracter);
+    printf("El valor numerico del caracter es: %d.\n ", Valor(caracter));
+}
+
+// DESARROLLO DEL TERCER PUNTO
+void Punto3(Pila* pila, Pila* pilaAux, Pila* pila2) {
+    char* palabra;
+    
+    printf("Ingrese una cadena de digitos y operaciones\n");
+    scanf("%s", palabra);
+    if (esPalabraValida(palabra)) {
+        pushConvertidos(&pila, palabra);
+        desapilarYApilarEnAux(&pila, &pilaAux); // para que resuelva a izq, y respetar la precedencia matematica. 
+        printf("Resultado %lf.\n", realizarOperacion(&pilaAux, &pila2));
+    } else {
+        printf("Ingrese una palabra valida");
+    }
+}
+
+ 
 int esPalabraDecimal(char *palabra) {
                 // 0 1-9 + - R
     int tt[4][5]= {{3,2,1,1,3},  // 0-
@@ -258,11 +271,19 @@ int estaEntreCaracteres(int caracter, char indice_inicial, char indice_Superior)
 
 int Valor (int c) {    
     return (c - '0'); 
-} /* fin Valor */ 
+}
+
+//// Punto 3
 
 int esOperador(char operador) {
     if (operador == '+' || operador == '-' || operador == '*' || operador == '/') return 1;
     return 0;
+}
+
+void desapilarYApilarEnAux(Pila* pila, Pila* pilaAux) {
+    while(*pila != NULL){
+        push(pilaAux , pop(pila));
+    }
 }
 
 int esPalabraValida(char *palabra) {
@@ -310,7 +331,7 @@ int columna4(int c) {
 
 // 1+222*8/6 --- 
 void pushConvertidos(Pila *pila, char * palabra) {
-    int a = 0;
+    float a = 0;
     char operador;
     for(int i=0; palabra[i] != '\0'; i++) {
         if (isdigit (palabra[i]) ) {
@@ -325,55 +346,54 @@ void pushConvertidos(Pila *pila, char * palabra) {
     push(pila,a);
 } 
 
-int realizarOperacion(Pila *pila, Pila *pila2) {
-    int num1 = pop(pila);
-    int operador = pop(pila);
-    int resultado = 0;
-    int num2;
+float realizarOperacion(Pila *pilaAux, Pila *pila2) {
+    float num1;
+    int operador;
+    float resultado = 0;
+    float num2;
 
-    while(pila != NULL) { // 10+15
-        printf ("hola");
+    num1 = pop(pilaAux);
+    while(*pilaAux != NULL) {
+        printf("hola");
+        operador = pop(pilaAux);
         if (!esOperadorPrioritario(operador)) {  // * y / son prioritarios
             push(pila2, num1);
             push(pila2, operador);
         } else {
-            num2 = pop(pila);
+            num2 = pop(pilaAux);
             resultado = operar(num2, num1, operador);
-            push(pila, resultado);
+            push(pilaAux, resultado);
         }
         
-        num1 = pop(pila);
-        if(pila != NULL) {
-            operador = pop(pila);
-        } else {
-            push(pila2, num1);
-        }
+        num1 = pop(pilaAux);
     }
 
-    while (pila2 != NULL) { // NO ENTRA
-        printf ("hola");
+    push(pila2,num1);
+
+    num1 = pop(pila2);
+    while (*pila2 != NULL){
+        operador = pop(pila2);
+        num2 = pop(pila2);
+        resultado = operar(num1,num2,operador); 
+        push(pila2,resultado);
+        // ..
+
         num1 = pop(pila2);
-        if(pila2 != NULL) {
-            operador = pop(pila2);   
-            num2 = pop(pila2);
-            resultado = operar(num1,num2,operador); 
-            push(pila2,resultado);
-        } else {
-            return num1;
-        }
     }
+
+    return num1;
 }
  
-int operar(int num2, int num1, int op) {
-    int resultado = 0;
+float operar(float num2, float num1, int op) {
+    float resultado = 0;
 
-    if (op == 42) { // * es el 42 en ASCII
+    if (op == 42){ // * es el 42 en ASCII
         resultado = num1 * num2;
-    } else if(op == 47) { // / es el 47 en ASCII
+    }else if(op == 47) { // / es el 47 en ASCII
         resultado = num1 / num2;
-    } else if(op == 43) { // + es el 43 en ASCII
+    }else if(op == 43) { // + es el 43 en ASCII
         resultado = num1 + num2;
-    } else if(op == 45) { // - es el 45 en ASCII
+    }else if(op == 45) { // - es el 45 en ASCII
         resultado = num1 - num2;
     }
 
@@ -384,5 +404,3 @@ int esOperadorPrioritario(int operador){
     if (operador == 47 || operador == 42) return 1;
     return 0;
 }
-
-
