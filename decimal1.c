@@ -1,8 +1,10 @@
+// Bibliotecas utilizadas
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 
+// Definicion de estructuras (Pilas)
 typedef struct nodo {
    int info;
    struct nodo* siguiente;
@@ -11,10 +13,11 @@ typedef struct nodo {
 typedef nodo* ptrNodo;
 typedef nodo* Pila;
 
+// Definicion de funciones utilizadas
 int esPalabraDecimal(char *);
 int esPalabraOctal(char *);
 int esPalabraHexa(char *);
-int columna(int);
+int columnaDecimal(int);
 int columna2(int);
 int columna3(int);
 int columna4(int);
@@ -23,15 +26,14 @@ void pushConvertidos(Pila *, char *);
 void push(Pila *, int);
 int pop(Pila *);
 int esPalabraValida(char *);
-float realizarOperacion(Pila *, Pila *);
+float realizarOperacion(Pila *, Pila *, Pila *);
 int esOperadorPrioritario(int);
 float operar(float,float, int);
 void desapilarYApilarEnAux(Pila*, Pila*);
 void Punto1();
 void Punto2();
-void Punto3(Pila*,Pila*,Pila*);
+void Punto3(Pila*,Pila*);
 int Valor(int);
-
 
 void push(Pila *pila, int info) {
     ptrNodo nuevo;
@@ -49,21 +51,20 @@ int pop(Pila* pila) {
     return x;
 }
 
-// Main
 int main() {
 
     Pila pila = NULL;
     Pila pila2 = NULL;
-    Pila pilaAux = NULL;
 
     int opcion;
     do {
         printf("------------------------MENU------------------------\n");
         printf("--------Selecciona una opcion(numero)--------\n");
-        printf("1- Punto 1\n");
-        printf("2- Punto 2\n");
-        printf("3- Punto 3\n");
+        printf("1- Desarrollo del punto 1 \n");
+        printf("2- Desarrollo del punto 2\n");
+        printf("3- Desarrollo del punto 3\n");
         printf("0- Salir\n");
+        printf("Ingrese un valor correspondiente\n");
         scanf("%d", &opcion);
 
         switch (opcion) {
@@ -78,7 +79,7 @@ int main() {
                 Punto2();
                 break;
             case 3:
-                Punto3(&pila,&pilaAux,&pila2);
+                Punto3(&pila,&pila2);
                 break;
             default:
                 printf("--------opcion invalida, por favor ingrese una opcion valida!--------\n");
@@ -88,8 +89,18 @@ int main() {
     return 0;
 }
 
-// DESARROLLO DEL PRIMER PUNTO
+// Explicacion del uso de strtok : 
+
+// Lo primero es entender que necesito definir 2 vectores de caracteres, uno para la palabra y otro para el caracter separador, ademas, es necesario un puntero auxiliar donde pueda guardar las diferentes partes de la palabra. Cuando encuentre el primer "caracter espurio/separador" va a quedarse con lo que habia detras de este (en el primer caso, se quedara con la palabra desde su comienzo hasta el caracter). Por ejemplo, si yo tengo la cadena "Quiero$separar$esto" comienza desde el primer elemento y guarda hasta el caracter. Como hacemos para seguir guardando el resto de los caracteres? Bueno, llamamos a la misma funcion pero en vez de pasarle el vector de caracteres como la primera vez (junto con el char vector del separador), voy a pasarle NULL, y asi la funcion sabe que yo quiero que busque desde el ultimo caracter que freno la palabra. Podriamos asignarlo a diferentes char *vectorAux pero en este caso nos convenia pisarlo y volver a ejecutar el while con la proxima palabra. Cada vez que ejecutamos el while preguntamos si la palabra es distinta del NULL, por ende va  a saber cuando detenerse.
+
+// https://www.youtube.com/watch?v=nrO_pXGZc3Y 
+// https://parzibyte.me/blog/2018/11/13separar-cadena-delimitadores-c-strtok/
+// En este video se muestra de manera muy buena como funciona esta funcion. Podriamos haber implementado tambien una pila, ir separando las palabras y despues sacar eso y usarlo, pero esta funcion nos facilita mucho mas la separacion de las mismas. 
+
+
+// DESARROLLO DEL PRIMER PUNTO 
 void Punto1() {
+    // Inicializacion
     char *cadenaNumeros;
     char caracterSeparador[] = "$";
     int contadorDecimal = 0; 
@@ -101,93 +112,95 @@ void Punto1() {
     char *palabra = strtok(cadenaNumeros, caracterSeparador); // "$"
 
 while(palabra != NULL) {
-    printf("%s.\n", palabra);
-
+    printf("%s.\n", palabra); // chequeo para saber que palabra imprime. 
     if (esPalabraDecimal(palabra)) {
-        printf("Es palabra decimal \n");
-        contadorDecimal ++;
+            printf("Es palabra decimal \n");
+            contadorDecimal ++;
         }  
         else if (esPalabraOctal(palabra)) {
-                 printf("Es palabra Octal \n");
-                 contadorOctal ++;
+                printf("Es palabra Octal \n");
+                contadorOctal ++;
             } else if (esPalabraHexa(palabra)) {
                 printf("Es palabra Hexa \n");
-                contadorHexa ++;
-        
+                contadorHexa ++;        
             }   else {
                 printf("No pertenece al lenguaje \n"); 
             } 
-            
         palabra = strtok(NULL, caracterSeparador);
     }
-    printf("cantidad Decimales es %d.\n" , contadorDecimal);
+    printf("cantidad de caracteres decimales es %d.\n" , contadorDecimal);
+    printf("cantidad de caracteres octales %d.\n" , contadorOctal);
+    printf("cantidad de caracteres hexadecimales es %d.\n" , contadorHexa);
 }
 
 // DESARROLLO DEL SEGUNDO PUNTO
 void Punto2() {
     char caracter;
-    printf("Ingrese un caracter numerico\n");
+    printf("Ingrese un caracter numerico (1-9)\n");
     scanf(" %c", &caracter);
     printf("El valor numerico del caracter es: %d.\n ", Valor(caracter));
 }
 
 // DESARROLLO DEL TERCER PUNTO
-void Punto3(Pila* pila, Pila* pilaAux, Pila* pila2) {
-    char* palabra;
-    
+void Punto3(Pila* pila, Pila* pila2) {
+    Pila pilaAux = NULL;
+    Pila pilaAux2 = NULL;
+
+    char palabra[50]; // Inicializamos un vector con un tope, porque no encontramos la forma exacta de poder hacerlo sin tener un tamaño maximo. 
     printf("Ingrese una cadena de digitos y operaciones\n");
     scanf("%s", palabra);
-    if (esPalabraValida(palabra)) {
-        pushConvertidos(&pila, palabra);
-        desapilarYApilarEnAux(&pila, &pilaAux); // para que resuelva a izq, y respetar la precedencia matematica. 
-        printf("Resultado %lf.\n", realizarOperacion(&pilaAux, &pila2));
+
+    if (esPalabraValida(palabra)) { // chequea que la palabra este dentro los parametros establecidos.
+        pushConvertidos(pila, palabra); // primeros pusheamos todos los caracteres y los pusheamos en la lista transformandolos a numeros. 
+        desapilarYApilarEnAux(pila, &pilaAux); // para que resuelva a izq, y respetar la precedencia matematica, sino teniamos problemas con la division. 
+        printf("Resultado %lf.\n", realizarOperacion(pila2, &pilaAux, &pilaAux2));
     } else {
         printf("Ingrese una palabra valida");
     }
 }
 
- 
 int esPalabraDecimal(char *palabra) {
-                // 0 1-9 + - R
-    int tt[4][5]= {{3,2,1,1,3},  // 0-
-                   {3,2,3,3,3},  // 1
-                   {2,2,3,3,3},  // 2+
-                   {3,3,3,3,3}   // 3
+                // 0 1-9 - + OTRO
+    int tt[5][5]= {{1,2,3,3,4},  // 0-
+                   {4,4,4,4,4},  // 1+
+                   {2,2,4,4,4},  // 2+
+                   {4,2,4,4,4},  // 3
+                   {4,4,4,4,4}   // 4
                   };
 
     int estado = 0;
     int i = 0;
     int c = palabra[i];
 
-    while(c != '\0' && estado != 3) {
-       estado = tt[estado][columna(c)]; 
+    while(c != '\0' && estado != 4) {
+       estado = tt[estado][columnaDecimal(c)]; 
        c= palabra[++i]; // itero la cadena
     }
 
-    if (estado == 2) {
+    if (estado == 2 || estado == 1) {
         return 1;
     } return 0;
 }
 
-int columna(int c) {
-    if (estaEntreCaracteres(c,'1','9')) { // optamos por usar un estado mas y no verificar ya que la verificacion despues nos daba problemas con la forma en la que haciamos esta columna, pero de todas formas esta hecha porque la usamos para el punto 3
+int columnaDecimal(int c) {
+    if (estaEntreCaracteres(c,'1','9')) { 
         return 1;
     } else {
         switch (c) {
             case '0':
                 return 0;
             case '+':
-                return 2;
-            case '-':
                 return 3;
+            case '-':
+                return 2;
             default :
                 return 4; // otro, rechazo
         }
-    } 
+    }
 }
 
 int esPalabraOctal(char * palabra) {
-                // 0 1-7 
+                // 0 1-7 OTRO
     int tt[4][3]= {{1,3,3},  // 0-
                    {2,2,3},  // 1
                    {2,2,3},  // 2+
@@ -263,7 +276,7 @@ int columna3(int c) {
 }
 
 int estaEntreCaracteres(int caracter, char indice_inicial, char indice_Superior) {
-    if (! (caracter >= indice_inicial && caracter <= indice_Superior)) return 0; 
+    if (!(caracter >= indice_inicial && caracter <= indice_Superior)) return 0; 
     return 1;
 }
 
@@ -280,6 +293,7 @@ int esOperador(char operador) {
     return 0;
 }
 
+// Esta funcion esta hecha para respetar la resolucion de las operaciones matematicas de izquierda a derecha
 void desapilarYApilarEnAux(Pila* pila, Pila* pilaAux) {
     while(*pila != NULL){
         push(pilaAux , pop(pila));
@@ -300,17 +314,16 @@ int esPalabraValida(char *palabra) {
 
     while(c != '\0' && estado != 3) {
        estado = tt[estado][columna4(c)]; 
-       c= palabra[++i]; // itero la cadena
+       c= palabra[++i]; 
     }
 
-    if (estado == 2 || estado == 1) {
+    if (estado == 2 || estado == 1) { // ambos son estados de aceptacion
         return 1;
     } return 0;
 }
 
-// 
 int columna4(int c) {
-    if (estaEntreCaracteres(c,'1','9')) { // optamos por usar un estado mas y no verificar ya que la verificacion despues nos daba problemas con la forma en la que haciamos esta columna, pero de todas formas esta hecha porque la usamos para el punto 3
+    if (estaEntreCaracteres(c,'1','9')) { 
         return 5;
     } else {
         switch (c) {
@@ -327,9 +340,10 @@ int columna4(int c) {
         }
     } 
 }
-//
 
-// 1+222*8/6 --- 
+// Aclaracion: la idea de hacerlo float es para no tener problemas en casos de division.
+// La idea de esta funcion es simplemente pushear los valores de la cadena transformalos en sus respectivos numeros, los operadores los transforma en un entero tambien, su codigo ASCII (dato de color).
+
 void pushConvertidos(Pila *pila, char * palabra) {
     float a = 0;
     char operador;
@@ -346,7 +360,7 @@ void pushConvertidos(Pila *pila, char * palabra) {
     push(pila,a);
 } 
 
-float realizarOperacion(Pila *pilaAux, Pila *pila2) {
+float realizarOperacion(Pila *pila2, Pila *pilaAux, Pila *pilaAux2) {
     float num1;
     int operador;
     float resultado = 0;
@@ -354,39 +368,35 @@ float realizarOperacion(Pila *pilaAux, Pila *pila2) {
 
     num1 = pop(pilaAux);
     while(*pilaAux != NULL) {
-        printf("hola");
-        operador = pop(pilaAux);
+        operador = pop(pilaAux); // Si es prioritario se opera y se almacena en la pila auxiliar, sino, se almacena sin operarse en la otra pila, haciendo que en la otra queden el +/- con la misma prioridad. 
         if (!esOperadorPrioritario(operador)) {  // * y / son prioritarios
-            push(pila2, num1);
+            push(pila2, num1); 
             push(pila2, operador);
-        } else {
+        } else { 
             num2 = pop(pilaAux);
-            resultado = operar(num2, num1, operador);
+            resultado = operar(num1, num2, operador);
             push(pilaAux, resultado);
         }
-        
         num1 = pop(pilaAux);
     }
 
     push(pila2,num1);
 
-    num1 = pop(pila2);
-    while (*pila2 != NULL){
-        operador = pop(pila2);
-        num2 = pop(pila2);
+    desapilarYApilarEnAux(pila2, pilaAux2);
+
+    num1 = pop(pilaAux2);
+    while (*pilaAux2 != NULL){
+        operador = pop(pilaAux2);
+        num2 = pop(pilaAux2);
         resultado = operar(num1,num2,operador); 
-        push(pila2,resultado);
-        // ..
-
-        num1 = pop(pila2);
+        push(pilaAux2,resultado);
+        num1 = pop(pilaAux2);
     }
-
     return num1;
 }
  
-float operar(float num2, float num1, int op) {
+float operar(float num1, float num2, int op) {
     float resultado = 0;
-
     if (op == 42){ // * es el 42 en ASCII
         resultado = num1 * num2;
     }else if(op == 47) { // / es el 47 en ASCII
@@ -396,7 +406,6 @@ float operar(float num2, float num1, int op) {
     }else if(op == 45) { // - es el 45 en ASCII
         resultado = num1 - num2;
     }
-
     return resultado;
 }
 
